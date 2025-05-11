@@ -186,25 +186,46 @@ export function create({ fs, path, Papa, tf }) {
   // Função para obter detalhes da análise exploratória dos dados
   async function getDataSummary(dataPath) {
     const filePath = path.join(dataPath, "emissions.csv");
-    const data = await loadAndProcessData(filePath);
+    const fullData = await loadAndProcessData(filePath);
 
-    const sampleSize = data.length;
+    // Limitar a quantidade de dados para análise estatística
+    const sampleSize = Math.min(fullData.length, 1000);
+    const data = fullData.slice(0, sampleSize);
+
+    console.log(
+      `Usando ${sampleSize} registros de ${fullData.length} para análise estatística`
+    );
+
     const columns = Object.keys(data[0] || {});
 
     // Estatísticas para colunas numéricas
     const stats = {};
+
+    // Processar colunas numéricas
     columns.forEach((col) => {
       if (typeof data[0][col] === "number") {
-        const values = data
-          .map((row) => row[col])
-          .filter((val) => val !== null && !isNaN(val));
+        let min = Infinity;
+        let max = -Infinity;
+        let sum = 0;
+        let count = 0;
 
-        if (values.length > 0) {
+        // Calcular estatísticas
+        for (let i = 0; i < data.length; i++) {
+          const val = data[i][col];
+          if (val !== null && !isNaN(val)) {
+            min = Math.min(min, val);
+            max = Math.max(max, val);
+            sum += val;
+            count++;
+          }
+        }
+
+        if (count > 0) {
           stats[col] = {
-            min: Math.min(...values),
-            max: Math.max(...values),
-            mean: values.reduce((sum, val) => sum + val, 0) / values.length,
-            count: values.length,
+            min: min,
+            max: max,
+            mean: sum / count,
+            count: count,
           };
         }
       }
@@ -214,48 +235,44 @@ export function create({ fs, path, Papa, tf }) {
     const categoricalStats = {};
     columns.forEach((col) => {
       if (typeof data[0][col] === "string") {
-        const values = data
-          .map((row) => row[col])
-          .filter((val) => val !== null);
+        const valueMap = new Map();
 
-        const uniqueValues = [...new Set(values)];
+        // Contar ocorrências
+        for (let i = 0; i < data.length; i++) {
+          const val = data[i][col];
+          if (val !== null) {
+            valueMap.set(val, (valueMap.get(val) || 0) + 1);
+          }
+        }
+
+        // Encontrar valor mais comum
+        let maxCount = 0;
+        let maxValue = null;
+
+        valueMap.forEach((count, value) => {
+          if (count > maxCount) {
+            maxCount = count;
+            maxValue = value;
+          }
+        });
 
         categoricalStats[col] = {
-          uniqueCount: uniqueValues.length,
-          examples: uniqueValues.slice(0, 5),
-          mostCommon: getMostCommonValue(values),
-          count: values.length,
+          uniqueCount: valueMap.size,
+          examples: Array.from(valueMap.keys()).slice(0, 5),
+          mostCommon: { value: maxValue, count: maxCount },
+          count: data.length - (valueMap.get(null) || 0),
         };
       }
     });
 
     return {
-      sampleSize,
+      totalRecords: fullData.length,
+      analyzedSample: sampleSize,
       columns,
       numericStats: stats,
       categoricalStats,
-      sampleData: data.slice(0, 5),
+      sampleData: fullData.slice(0, 5),
     };
-  }
-
-  // Encontrar o valor mais comum em um array
-  function getMostCommonValue(arr) {
-    const counts = arr.reduce((acc, val) => {
-      acc[val] = (acc[val] || 0) + 1;
-      return acc;
-    }, {});
-
-    let maxCount = 0;
-    let maxValue = null;
-
-    for (const [value, count] of Object.entries(counts)) {
-      if (count > maxCount) {
-        maxCount = count;
-        maxValue = value;
-      }
-    }
-
-    return { value: maxValue, count: maxCount };
   }
 
   return {
