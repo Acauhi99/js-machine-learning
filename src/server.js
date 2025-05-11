@@ -30,8 +30,6 @@ app.use(express.static(publicPath));
 
 // Rotas
 app.use(createRoutes(container));
-
-// Rota principal
 app.get("/", (req, res) => {
   res.sendFile(path.join(publicPath, "index.html"));
 });

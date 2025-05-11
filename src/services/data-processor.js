@@ -28,7 +28,6 @@ export function create({ fs, path, Papa, tf }) {
 
   // Função para converter colunas categóricas em numéricas
   function preprocessCategoricalData(data) {
-    // Mapear colunas categóricas para valores numéricos
     const categoricalColumns = [
       "tipo_emissao",
       "gas",

@@ -3,7 +3,7 @@ export function create({ tf, path, fs }) {
   function createModel(inputShape) {
     const model = tf.sequential();
 
-    // Primeira camada oculta
+    // Primeira camada
     model.add(
       tf.layers.dense({
         inputShape: [inputShape],
@@ -13,7 +13,7 @@ export function create({ tf, path, fs }) {
       })
     );
 
-    // Segunda camada oculta
+    // Segunda camada
     model.add(
       tf.layers.dense({
         units: 32,

@@ -25,7 +25,6 @@ export function create({ tf, path }) {
     // Fazer previsões
     const predictions = model.predict(normalizedInput);
 
-    // Converter para array
     const predictionsArray = await predictions.array();
 
     // Limpar tensores
@@ -97,7 +96,7 @@ export function create({ tf, path }) {
     }));
 
     return {
-      comparison: comparison.slice(0, 20), // Retornar apenas alguns exemplos
+      comparison: comparison.slice(0, 20),
       metrics: {
         mse,
         mae,

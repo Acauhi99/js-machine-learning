@@ -4,7 +4,6 @@ export function createRoutes(container) {
   const router = Router();
   const { dataProcessor, modelTrainer, predictor, state } = container;
 
-  // Rota para processamento de dados
   router.get("/api/data", async (req, res) => {
     try {
       // Processar os dados
@@ -29,7 +28,6 @@ export function createRoutes(container) {
     }
   });
 
-  // Rota para treinamento do modelo
   router.post("/api/train", async (req, res) => {
     try {
       if (!state.processedData) {
@@ -63,7 +61,6 @@ export function createRoutes(container) {
     }
   });
 
-  // Rota para predições
   router.post("/api/predict", async (req, res) => {
     try {
       // Verificar se o modelo existe ou carregar um modelo salvo
@@ -99,7 +96,7 @@ export function createRoutes(container) {
 
       // Gerar previsões futuras (
       if (generateFuture) {
-        const futureYear = new Date().getFullYear() + 10;
+        const yearsToPredict = 10;
         const testData = await state.processedData.testing.xs.array();
         const lastDataPoint = testData[testData.length - 1];
 
@@ -107,7 +104,7 @@ export function createRoutes(container) {
           state.trainedModel,
           lastDataPoint,
           state.normalizationStats,
-          futureYear
+          yearsToPredict
         );
 
         result.futurePredictions = futurePredictions;
@@ -133,7 +130,6 @@ export function createRoutes(container) {
     }
   });
 
-  // Rota para informações do modelo
   router.get("/api/model-info", async (req, res) => {
     try {
       // Verificar se o modelo está disponível ou tentar carregar
