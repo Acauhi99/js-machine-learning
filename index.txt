@@ -1,0 +1,116 @@
+# Análise de Emissões de Gases de Efeito Estufa no Brasil
+
+## Sumário
+1. [Tema do Trabalho](#1-tema-do-trabalho)
+2. [Dataset Utilizado](#2-dataset-utilizado)
+3. [Informações sobre os Dados Coletados](#3-informações-sobre-os-dados-coletados)
+4. [Preparação dos Dados](#4-preparação-dos-dados)
+5. [Problema a ser Resolvido](#5-problema-a-ser-resolvido)
+6. [Modelo de Machine Learning Criado](#6-modelo-de-machine-learning-criado)
+7. [Conclusão sobre o Resultado Encontrado](#7-conclusão-sobre-o-resultado-encontrado)
+
+## 1. Tema do Trabalho
+O tema deste trabalho é a análise e previsão de emissões de gases de efeito estufa no Brasil utilizando técnicas de Machine Learning com TensorFlow.js. O projeto implementa um modelo multicamadas para processar dados históricos e gerar projeções futuras de emissões.
+
+## 2. Dataset Utilizado
+O dataset utilizado é proveniente do **SEEG** (Sistema de Estimativas de Emissões e Remoções de Gases de Efeito Estufa), que contém dados históricos de emissões de gases de efeito estufa no Brasil. A escolha deste dataset se deve à sua relevância para questões ambientais e políticas públicas, além de apresentar uma série temporal adequada para aplicação de técnicas de aprendizado supervisionado.
+
+### Campos do CSV:
+```
+ano,nivel_1,nivel_2,nivel_3,nivel_4,nivel_5,nivel_6,tipo_emissao,gas,atividade_economica,produto,emissao
+```
+
+Onde:
+
+| Campo | Descrição |
+|-------|-----------|
+| ano | Ano da medição |
+| nivel_1 a nivel_6 | Categorias hierárquicas de classificação |
+| tipo_emissao | Classificação do tipo de emissão |
+| gas | Tipo de gás emitido |
+| atividade_economica | Setor econômico relacionado |
+| produto | Produto associado às emissões |
+| emissao | Valor da emissão (variável alvo) |
+
+## 3. Informações sobre os Dados Coletados
+Os dados coletados cobrem múltiplos anos de emissões de gases de efeito estufa no Brasil, categorizados por diferentes setores econômicos e tipos de gases. O sistema implementa uma análise estatística exploratória que calcula:
+
+* Estatísticas para colunas numéricas (mínimo, máximo, média)
+* Análises de colunas categóricas (contagens, valores únicos)
+* Visualizações dos dados para melhor compreensão dos padrões
+
+> **Referência no código**: função `getDataSummary()` em `data-processor.js`
+
+## 4. Preparação dos Dados
+A preparação dos dados segue diversas etapas essenciais: 
+
+1. Carregamento do CSV usando a biblioteca PapaParse 
+2. Conversão de colunas categóricas em valores numéricos através de mapeamentos (função `preprocessCategoricalData()` em `data-processor.js`)
+3. Filtragem de registros com valores nulos (função `prepareData()`)
+4. Normalização estatística para média zero e desvio padrão unitário (`data-processor.js`)
+5. Divisão em conjuntos de treino (80%) e teste (20%) (`data-processor.js`)
+
+### Features Selecionadas:
+
+```javascript
+const features = [
+  "ano",
+  "tipo_emissao_num",
+  "gas_num",
+  "atividade_economica_num",
+];
+```
+
+## 5. Problema a ser Resolvido
+O problema central é criar um sistema capaz de:
+
+* Compreender os padrões históricos de emissões de gases de efeito estufa no Brasil
+* Fazer projeções futuras baseadas nesses padrões históricos
+* Fornecer insights valiosos para pesquisadores, formuladores de políticas públicas e interessados em questões ambientais
+
+A solução utiliza aprendizado supervisionado, onde o modelo aprende a relacionar características como ano, tipo de emissão e atividade econômica com o valor de emissão correspondente, permitindo prever valores futuros com base em padrões identificados.
+
+## 6. Modelo de Machine Learning Criado
+O modelo implementado utiliza uma arquitetura de rede neural multicamadas usando TensorFlow.js:
+
+### Arquitetura:
+* **Camadas**: 3 camadas (2 ocultas + 1 saída)
+* **Primeira camada oculta**: 64 unidades com ativação ReLU e inicialização heNormal
+* **Segunda camada oculta**: 32 unidades com ativação ReLU e inicialização heNormal
+* **Camada de saída**: 1 unidade com ativação linear
+
+### Configuração:
+* **Otimizador**: Adam com taxa de aprendizado 0.001
+* **Função de perda**: Mean Squared Error (MSE)
+* **Métricas de avaliação**: MSE, MAE (Mean Absolute Error) e RMSE (Root Mean Squared Error)
+
+> **Referência no código**: função `createModel()` em `model-trainer.js`
+
+O treinamento é configurável com parâmetros como número de épocas e tamanho de batch, com validação cruzada usando 20% dos dados de treino.
+
+## 7. Conclusão sobre o Resultado Encontrado
+Após implementar e treinar o modelo, as análises das previsões revelam:
+
+### Padrões identificados:
+O modelo consegue capturar a relação entre as variáveis de entrada (ano, tipo de emissão, gás e atividade econômica) e a variável de saída (emissão).
+
+### Limitações observadas:
+Em alguns casos, as previsões futuras podem apresentar valores constantes ao longo do tempo. Isso pode ser devido a:
+
+* Características da arquitetura do modelo (redes feed-forward simples podem não capturar completamente dependências temporais complexas)
+* Limitações dos recursos utilizados (podem ser necessários fatores adicionais para capturar tendências futuras)
+* Fenômeno natural dos dados (alguns períodos de emissões podem realmente apresentar estabilidade)
+
+### Validação técnica:
+Apesar das limitações, o modelo demonstra a aplicação correta de técnicas de aprendizado supervisionado com redes neurais multicamadas em dados ambientais.
+
+### Perspectivas futuras:
+Para melhorar os resultados, seria recomendável expandir o modelo com:
+
+* Técnicas específicas para séries temporais (LSTM, GRU)
+* Features adicionais como indicadores econômicos e políticas ambientais
+* Dados históricos mais extensos
+
+O código de predição e avaliação pode ser encontrado em `predictor.js`, onde as funções `compareWithActual()` e `generateFuturePredictions()` implementam a lógica de previsão e análise dos resultados.
+
+A aplicação fornece uma interface interativa que permite visualizar os resultados das previsões através de gráficos e tabelas, contribuindo para discussões baseadas em dados sobre políticas ambientais e estratégias de mitigação de emissões de gases de efeito estufa no Brasil.
